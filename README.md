@@ -1,3 +1,3 @@
-# mobx-rest-jquery-adapter
+# mobx-rest-axios-adapter
 
-jQuery adapter for mobx-rest
+Axios adapter for mobx-rest
