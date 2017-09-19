@@ -1,60 +1,17 @@
 import adapter from '../src'
-import jq from 'jquery'
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+
+const mock = new MockAdapter(axios)
 
 adapter.apiPath = '/api'
-adapter.commonOptions = {
-  headers: { 'SomeHeader': 'test' },
-  xhrFields: { withCredentials: true }
-}
+adapter.commonOptions = {}
 
-const noop = () => {}
-
-const injectDone = (values) => {
-  jq.ajax = jest.genMockFunction().mockImplementation((url, options) => {
-    return {
-      done: (cb) => {
-        cb(values)
-        return { fail: noop }
-      }
-    }
-  })
-}
-
-const injectFail = (values) => {
-  jq.ajax = jest.genMockFunction().mockImplementation((url, options) => {
-    return {
-      done: () => {
-        return {
-          fail: (cb) => {
-            cb({ responseText: values })
-          }
-        }
-      }
-    }
-  })
-}
+beforeEach(() => {
+  mock.reset()
+})
 
 describe('adapter', () => {
-  describe('ajax', () => {
-    describe('when it fails with a malformed response', () => {
-      let ret
-      const values = 'ERROR'
-
-      beforeEach(() => {
-        injectFail(values)
-        ret = adapter.get('/users')
-      })
-
-      it('returns the error wrapper into an array', () => {
-        expect(ret.abort).toBeTruthy()
-
-        return ret.promise.catch((vals) => {
-          expect(vals).toEqual({})
-        })
-      })
-    })
-  })
-
   describe('get', () => {
     let ret
     const data = { manager_id: 2 }
@@ -67,7 +24,7 @@ describe('adapter', () => {
       const values = { id: 1, name: 'paco' }
 
       beforeEach(() => {
-        injectDone(values)
+        mock.onGet('/api/users?manager_id=2').reply(200, values)
         action()
       })
 
@@ -76,37 +33,33 @@ describe('adapter', () => {
 
         return ret.promise.then((vals) => {
           expect(vals).toEqual(values)
-          expect(jq.ajax.mock.calls[0][0]).toBe('/api/users')
-          expect(jq.ajax.mock.calls[0][1]).toEqual({
-            data,
-            headers: { 'SomeHeader': 'test' },
-            xhrFields: { withCredentials: true }
-          })
         })
-      })
+      }, 10000)
     })
 
     describe('when it fails', () => {
-      const values = '{"errors": ["foo"]}'
+      const values = { errors: ['foo'] }
 
       beforeEach(() => {
-        injectFail(values)
+        mock.onGet('/api/users?manager_id=2').reply(400, values)
         action()
       })
 
       it('sends a xhr request with data parameters', () => {
         expect(ret.abort).toBeTruthy()
 
-        return ret.promise.catch((vals) => {
-          expect(vals).toEqual(['foo'])
-        })
+        return ret.promise
+          .then(() => fail('Request didn\'t fail'))
+          .catch((vals) => {
+            expect(vals).toEqual(values)
+          })
       })
     })
   })
 
   describe('post', () => {
     let ret
-    let data
+    const data = { name: 'paco' }
 
     const action = () => {
       ret = adapter.post('/users', data)
@@ -116,8 +69,7 @@ describe('adapter', () => {
       const values = { id: 1, name: 'paco' }
 
       beforeEach(() => {
-        data = { name: 'paco' }
-        injectDone(values)
+        mock.onPost('/api/users').reply(200, values)
         action()
       })
 
@@ -126,60 +78,26 @@ describe('adapter', () => {
 
         return ret.promise.then((vals) => {
           expect(vals).toEqual(values)
-          expect(jq.ajax.mock.calls[0][0]).toBe('/api/users')
-          expect(jq.ajax.mock.calls[0][1]).toEqual({
-            method: 'POST',
-            contentType: 'application/json',
-            headers: { 'SomeHeader': 'test' },
-            xhrFields: { withCredentials: true },
-            data: '{"name":"paco"}'
-          })
         })
       })
     })
 
     describe('when it fails', () => {
-      const values = '{"errors": ["foo"]}'
+      const values = { errors: ['foo'] }
 
       beforeEach(() => {
-        data = { name: 'paco' }
-        injectFail(values)
+        mock.onPost('/api/users').reply(400, values)
         action()
       })
 
       it('sends a xhr request with data parameters', () => {
         expect(ret.abort).toBeTruthy()
 
-        return ret.promise.catch((vals) => {
-          expect(vals).toEqual(['foo'])
-        })
-      })
-    })
-
-    describe('when it contains a file', () => {
-      const values = { id: 1, avatar: 'lol.png' }
-
-      beforeEach(() => {
-        data = { avatar: new File([''], 'filename') }
-        injectDone(values)
-        action()
-      })
-
-      it('sends a xhr request with data parameters', () => {
-        expect(ret.abort).toBeTruthy()
-
-        return ret.promise.then((vals) => {
-          const res = jq.ajax.mock.calls[0][1]
-
-          expect(vals).toEqual(values)
-          expect(jq.ajax.mock.calls[0][0]).toBe('/api/users')
-          expect(res.cache).toBe(false)
-          expect(res.contentType).toBe(false)
-          expect(res.data).toBeTruthy()
-          expect(res.method).toBe('POST')
-          expect(res.processData).toBe(false)
-          expect(res.xhr).toBeTruthy()
-        })
+        return ret.promise
+          .then(() => fail('Request didn\'t fail'))
+          .catch((vals) => {
+            expect(vals).toEqual(values)
+          })
       })
     })
   })
@@ -196,7 +114,7 @@ describe('adapter', () => {
       const values = { id: 1, name: 'paco' }
 
       beforeEach(() => {
-        injectDone(values)
+        mock.onPut('/api/users').reply(200, values)
         action()
       })
 
@@ -205,37 +123,31 @@ describe('adapter', () => {
 
         return ret.promise.then((vals) => {
           expect(vals).toEqual(values)
-          expect(jq.ajax.mock.calls[0][0]).toBe('/api/users')
-          expect(jq.ajax.mock.calls[0][1]).toEqual({
-            method: 'PUT',
-            contentType: 'application/json',
-            headers: { 'SomeHeader': 'test' },
-            xhrFields: { withCredentials: true },
-            data: '{"name":"paco"}'
-          })
         })
       })
     })
 
     describe('when it fails', () => {
-      const values = '{"errors": ["foo"]}'
+      const values = { errors: ['foo'] }
 
       beforeEach(() => {
-        injectFail(values)
+        mock.onPut('/api/users').reply(400, values)
         action()
       })
 
       it('sends a xhr request with data parameters', () => {
         expect(ret.abort).toBeTruthy()
 
-        return ret.promise.catch((vals) => {
-          expect(vals).toEqual(['foo'])
-        })
+        return ret.promise
+          .then(() => fail('Request didn\'t fail'))
+          .catch((vals) => {
+            expect(vals).toEqual(values)
+          })
       })
     })
   })
 
-  describe('del', () => {
+  describe('delete', () => {
     let ret
 
     const action = () => {
@@ -246,7 +158,7 @@ describe('adapter', () => {
       const values = { id: 1, name: 'paco' }
 
       beforeEach(() => {
-        injectDone(values)
+        mock.onDelete('/api/users').reply(200, values)
         action()
       })
 
@@ -255,32 +167,26 @@ describe('adapter', () => {
 
         return ret.promise.then((vals) => {
           expect(vals).toEqual(values)
-          expect(jq.ajax.mock.calls[0][0]).toBe('/api/users')
-          expect(jq.ajax.mock.calls[0][1]).toEqual({
-            method: 'DELETE',
-            contentType: 'application/json',
-            headers: { 'SomeHeader': 'test' },
-            xhrFields: { withCredentials: true },
-            data: null
-          })
         })
       })
     })
 
     describe('when it fails', () => {
-      const values = '{"errors": ["foo"]}'
+      const values = { errors: ['foo'] }
 
       beforeEach(() => {
-        injectFail(values)
+        mock.onDelete('/api/users').reply(400, values)
         action()
       })
 
       it('sends a xhr request with data parameters', () => {
         expect(ret.abort).toBeTruthy()
 
-        return ret.promise.catch((vals) => {
-          expect(vals).toEqual(['foo'])
-        })
+        return ret.promise
+          .then(() => fail('Request didn\'t fail'))
+          .catch((vals) => {
+            expect(vals).toEqual(values)
+          })
       })
     })
   })
