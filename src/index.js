@@ -1,6 +1,6 @@
 // @flow
 import axios from 'axios'
-import { merge } from 'lodash'
+import { forEach, isNull, merge } from 'lodash'
 import qs from 'qs'
 
 type Request = {
@@ -12,16 +12,47 @@ type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 type Options = {
   method: Method;
-  headers?: any;
-  data?: any;
+  headers?: ?{ [key: string]: string };
+  data?: ?{ [key: string]: mixed };
   qs?: any;
 }
 
 function ajaxOptions (url: string, options: Options): ?{ } {
+  if (options.method === 'GET' && options.data) {
+    url = `${url}?${qs.stringify(options.data, options.qs)}`
+
+    return {
+      url,
+      method: 'GET',
+      headers: options.headers,
+      responseType: 'json'
+    }
+  }
+
+  const formData = new FormData()
+  let hasFile = false
+
+  forEach(options.data, (val: any, attr: string) => {
+    hasFile = hasFile || val instanceof File
+    if (!isNull(val)) formData.append(attr, val)
+  })
+
+  if (hasFile) {
+    return {
+      url,
+      method: options.method,
+      cache: false,
+      processData: false,
+      data: formData,
+      headers: options.headers
+    }
+  }
+
   return {
     url,
     method: options.method,
     data: options.data,
+    headers: options.headers,
     responseType: 'json'
   }
 }
@@ -29,11 +60,6 @@ function ajaxOptions (url: string, options: Options): ?{ } {
 function ajax (url: string, options: Options): Request {
   const { CancelToken } = axios
   let cancel
-
-  if (options.method === 'GET' && options.data) {
-    url = `${url}?${qs.stringify(options.data, options.qs)}`
-    delete options.data
-  }
 
   const xhr = axios(ajaxOptions(url, options), {
     cancelToken: new CancelToken((c) => {

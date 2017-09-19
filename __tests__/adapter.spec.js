@@ -59,7 +59,7 @@ describe('adapter', () => {
 
   describe('post', () => {
     let ret
-    const data = { name: 'paco' }
+    let data
 
     const action = () => {
       ret = adapter.post('/users', data)
@@ -69,6 +69,7 @@ describe('adapter', () => {
       const values = { id: 1, name: 'paco' }
 
       beforeEach(() => {
+        data = { name: 'paco' }
         mock.onPost('/api/users').reply(200, values)
         action()
       })
@@ -86,6 +87,7 @@ describe('adapter', () => {
       const values = { errors: ['foo'] }
 
       beforeEach(() => {
+        data = { name: 'paco' }
         mock.onPost('/api/users').reply(400, values)
         action()
       })
@@ -98,6 +100,24 @@ describe('adapter', () => {
           .catch((vals) => {
             expect(vals).toEqual(values)
           })
+      })
+    })
+
+    describe('when it contains a file', () => {
+      const values = { id: 1, avatar: 'lol.png' }
+
+      beforeEach(() => {
+        data = { avatar: new File([''], 'filename') }
+        mock.onPost('/api/users').reply(201, values)
+        action()
+      })
+
+      it('sends a xhr request with data parameters', () => {
+        expect(ret.abort).toBeTruthy()
+
+        return ret.promise.then((vals) => {
+          expect(vals).toEqual(values)
+        })
       })
     })
   })
