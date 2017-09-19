@@ -1,6 +1,6 @@
 {
   "name": "mobx-rest-axios-adapter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Axios adapter for mobx-rest",
   "repository": {
     "type": "git",
