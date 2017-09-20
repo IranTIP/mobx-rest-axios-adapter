@@ -1,5 +1,4 @@
 // @flow
-import axios from 'axios'
 import { forEach, isNull, merge } from 'lodash'
 import qs from 'qs'
 
@@ -57,11 +56,11 @@ function ajaxOptions (url: string, options: Options): ?{ } {
   }
 }
 
-function ajax (url: string, options: Options): Request {
-  const { CancelToken } = axios
+function ajax (url: string, options: Options, axiosInstance): Request {
+  const { CancelToken } = axiosInstance
   let cancel
 
-  const xhr = axios(ajaxOptions(url, options), {
+  const xhr = axiosInstance(ajaxOptions(url, options), {
     cancelToken: new CancelToken((c) => {
       cancel = c
     })
@@ -85,35 +84,39 @@ function ajax (url: string, options: Options): Request {
   return { abort, promise }
 }
 
-export default {
+export default (axiosInstance: any) => ({
   apiPath: '',
   commonOptions: {},
 
   get (path: string, data: ?{ }, options?: {} = {}): Request {
     return ajax(
       `${this.apiPath}${path}`,
-      merge({}, { method: 'GET', data }, this.commonOptions, options)
+      merge({}, { method: 'GET', data }, this.commonOptions, options),
+      axiosInstance
     )
   },
 
   post (path: string, data: ?{ }, options?: {} = {}): Request {
     return ajax(
       `${this.apiPath}${path}`,
-      merge({}, { method: 'POST', data }, this.commonOptions, options)
+      merge({}, { method: 'POST', data }, this.commonOptions, options),
+      axiosInstance
     )
   },
 
   put (path: string, data: ?{ }, options?: {} = {}): Request {
     return ajax(
       `${this.apiPath}${path}`,
-      merge({}, { method: 'PUT', data }, this.commonOptions, options)
+      merge({}, { method: 'PUT', data }, this.commonOptions, options),
+      axiosInstance
     )
   },
 
   del (path: string, options?: {} = {}): Request {
     return ajax(
       `${this.apiPath}${path}`,
-      merge({}, { method: 'DELETE' }, this.commonOptions, options)
+      merge({}, { method: 'DELETE' }, this.commonOptions, options),
+      axiosInstance
     )
   }
-}
+})

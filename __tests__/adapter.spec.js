@@ -1,8 +1,10 @@
-import adapter from '../src'
+import createAdapter from '../src'
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
 
 const mock = new MockAdapter(axios)
+
+const adapter = createAdapter(axios)
 
 adapter.apiPath = '/api'
 adapter.commonOptions = {}
