@@ -1,4 +1,5 @@
 // @flow
+import { AxiosInstance } from 'axios'
 import { forEach, isNull, merge } from 'lodash'
 import qs from 'qs'
 
@@ -17,15 +18,18 @@ type Options = {
 }
 
 function ajaxOptions (url: string, options: Options): ?{ } {
+  const baseOptions: Object = {
+    url,
+    method: options.method,
+    responseType: 'json'
+  }
+
+  if (options.headers) baseOptions.headers = options.headers
+
   if (options.method === 'GET' && options.data) {
     url = `${url}?${qs.stringify(options.data, options.qs)}`
 
-    return {
-      url,
-      method: 'GET',
-      headers: options.headers,
-      responseType: 'json'
-    }
+    return Object.assign({}, baseOptions, { url })
   }
 
   const formData = new FormData()
@@ -37,23 +41,14 @@ function ajaxOptions (url: string, options: Options): ?{ } {
   })
 
   if (hasFile) {
-    return {
-      url,
-      method: options.method,
+    return Object.assign({}, baseOptions, {
       cache: false,
       processData: false,
-      data: formData,
-      headers: options.headers
-    }
+      data: formData
+    })
   }
 
-  return {
-    url,
-    method: options.method,
-    data: options.data,
-    headers: options.headers,
-    responseType: 'json'
-  }
+  return Object.assign({}, baseOptions, { data: options.data })
 }
 
 function ajax (url: string, options: Options, axiosInstance): Request {
@@ -84,7 +79,7 @@ function ajax (url: string, options: Options, axiosInstance): Request {
   return { abort, promise }
 }
 
-export default (axiosInstance: any) => ({
+export default (axiosInstance: AxiosInstance) => ({
   apiPath: '',
   commonOptions: {},
 
