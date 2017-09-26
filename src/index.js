@@ -107,6 +107,14 @@ export default (axiosInstance: AxiosInstance) => ({
     )
   },
 
+  patch (path: string, data: ?{ }, options?: {} = {}): Request {
+    return ajax(
+      `${this.apiPath}${path}`,
+      merge({}, { method: 'PATCH', data }, this.commonOptions, options),
+      axiosInstance
+    )
+  },
+
   del (path: string, options?: {} = {}): Request {
     return ajax(
       `${this.apiPath}${path}`,

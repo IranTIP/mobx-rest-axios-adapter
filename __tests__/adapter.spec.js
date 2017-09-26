@@ -124,6 +124,51 @@ describe('adapter', () => {
     })
   })
 
+  describe('patch', () => {
+    let ret
+    const data = { name: 'paco' }
+
+    const action = () => {
+      ret = adapter.patch('/users', data)
+    }
+
+    describe('when it resolves', () => {
+      const values = { id: 1, name: 'paco' }
+
+      beforeEach(() => {
+        mock.onPatch('/api/users').reply(200, values)
+        action()
+      })
+
+      it('sends a xhr request with data parameters', () => {
+        expect(ret.abort).toBeTruthy()
+
+        return ret.promise.then((vals) => {
+          expect(vals).toEqual(values)
+        })
+      })
+    })
+
+    describe('when it fails', () => {
+      const values = { errors: ['foo'] }
+
+      beforeEach(() => {
+        mock.onPatch('/api/users').reply(400, values)
+        action()
+      })
+
+      it('sends a xhr request with data parameters', () => {
+        expect(ret.abort).toBeTruthy()
+
+        return ret.promise
+          .then(() => fail('Request didn\'t fail'))
+          .catch((vals) => {
+            expect(vals).toEqual(values)
+          })
+      })
+    })
+  })
+
   describe('put', () => {
     let ret
     const data = { name: 'paco' }
