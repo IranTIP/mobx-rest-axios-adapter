@@ -36,7 +36,8 @@ function ajaxOptions (url: string, options: Options): ?{ } {
   let hasFile = false
 
   forEach(options.data, (val: any, attr: string) => {
-    hasFile = hasFile || val instanceof File
+    hasFile = hasFile || val instanceof File || val instanceof Blob
+
     if (!isNull(val)) formData.append(attr, val)
   })
 

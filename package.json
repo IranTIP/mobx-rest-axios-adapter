@@ -21,6 +21,7 @@
       "jest",
       "FormData",
       "File",
+      "Blob",
       "fail"
     ]
   },
