@@ -1,5 +1,5 @@
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](http://standardjs.com)
-[![Build Status](https://travis-ci.org/IranTip/mobx-rest-axios-adapter.svg?branch=master)](https://travis-ci.org/n1arash/mobx-rest-axios-adapter)
+[![Build Status](https://travis-ci.org/IranTip/mobx-rest-axios-adapter.svg?branch=master)](https://travis-ci.org/IranTip/mobx-rest-axios-adapter)
 # mobx-rest-axios-adapter
 
 Axios adapter for awesome [mobx-rest](https://github.com/masylum/mobx-rest)
