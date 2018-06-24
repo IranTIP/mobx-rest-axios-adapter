@@ -68,7 +68,7 @@ function ajax (url: string, options: Options, axiosInstance): Request {
         return resolve(response.data)
       },
       (error) => {
-        return reject(error.response.data)
+        return reject(error.response)
       }
     )
   })
