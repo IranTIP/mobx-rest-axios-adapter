@@ -1,6 +1,8 @@
 // @flow
 import { AxiosInstance } from 'axios'
-import { forEach, isNull, merge } from 'lodash'
+import forEach from 'lodash/forEach'
+import isNull from 'lodash/isNull'
+import merge from 'lodash/merge'
 import qs from 'qs'
 
 type Request = {
